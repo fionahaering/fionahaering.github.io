@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="de" dir="ltr">
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="author" content="Felix Rang, Simon Gruner, Fiona Häring, Fabian Schiller">
+    <meta name="keywords" content="interactive, campus, map">
+    <meta name="description" content="InteractiveCM">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>InteractiveCM</title>
+
+    <!--Import von Leaflet (CSS), Materialize (CSS, ICONS), eigenem Stylesheet (CSS)-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+    integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+    crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="resources/css/style.css">
+
+    <!-- JAVASCRIPT SETUP -->
+    <!-- Firebase Script -->
+    <script src="https://www.gstatic.com/firebasejs/5.8.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.6/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.4/firebase-firestore.js"></script>
+    <!-- Leaflet Script -->
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+    integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+    crossorigin=""></script>
+    <!-- Materialize Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <!--Materialize-Skript zum triggern der Sidebar -->
+    <script type="text/javascript" src="resources/js/SidenavInit.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.2.1.min.js"></script>
+  </head>
+
+
+  <body>
+    <div id="main" class="not-clickable">
+      <!--Materialize Sidenav Element -->
+      <ul id="slide_out" class="sidenav">
+        <li><h1 id="sidenav_title">InteractiveCM</h1></li>
+        <li>
+          <!-- Searchbar Element mit Icon als Prefix -->
+          <div id="search_input" class="input-field">
+            <i class="small material-icons prefix">search</i>
+            <input type="text" class="validate" placeholder="Suche POI-Titel">
+          </div>
+          <!-- Ende Searchbar Element -->
+        </li>
+        <!-- Materialize Collapsible Element "Kategorien" -->
+        <li>
+          <ul class="collapsible">
+            <li>
+              <div class="collapsible-header"><i class="material-icons">local_offer</i>Kategorien</div>
+              <div class="collapsible-body">
+                <!-- Unterpunkte Collapsible als Checkboxen -->
+                  <ul>
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Hörsäle</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Essen / Trinken</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Kunstwerke</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Toiletten</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Parkplätze</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Büros</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Dozenten</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Information</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <form action="#">
+                        <label class="filter">
+                          <input type="checkbox" class="filled-in"/>
+                          <span>Geschäfte</span>
+                        </label>
+                      </form>
+                    </li>
+
+                    <li>
+                      <a id="filter_button" class="waves-effect waves-light btn bottom-custom sidenav-close blue"><i class="material-icons left">filter_list</i>Filter</a>
+                    </li>
+
+                  </ul>
+                  <!-- Ende der Unterpunkte als Checkboxen -->
+              </div>
+            </li>
+            <li>
+              <a id="fav_button" class=" hidden waves-effect waves-light btn bottom-custom sidenav-close yellow"><i class="material-icons left">star</i>Favorites</a>
+            </li>
+          </ul>
+        </li>
+        <!-- Ende des Collapsible Elements "Kategorien" -->
+
+        <!-- Login Button -->
+        <li><a id="login_button" class="waves-effect waves-light btn bottom-custom sidenav-close"><i class="material-icons left">account_circle</i>Login / Register</a></li>
+        <!-- Ende Login Button -->
+
+        <li><a id="share_button" class="waves-effect waves-light btn bottom-custom sidenav-close blue"><i class="material-icons left">share</i>Share</a>
+          <input type="text" id="url">
+        </li>
+
+        <li><a id="tutorial_button" class="waves-effect waves-light btn bottom-custom sidenav-close orange"><i class="material-icons left">help</i>How to use?</a></li>
+
+      </ul>
+      <!-- Ende Sidenav -->
+
+      <!-- Triggericon für Sidenav -->
+      <a id="sidenav_trigger" data-target="slide_out" class="btn-floating btn-large waves-effect waves-light red sidenav-trigger show-on-large"><i class="material-icons">menu</i></a>
+      <!-- Ende Materialize Sidenav Element -->
+    </div>
+
+    <!-- Leaflet Map Element -->
+      <div id="mapid"></div>
+      <!-- Ende Leaflet Map Element -->
+
+    <!-- Login Window mit der Klasse "hidden" -->
+    <div id="login_window" class="hidden window_midscreen">
+      <div class="close">
+        <a href="#">
+          <i class="material-icons close-a">close</i>
+        </a>
+      </div>
+      <h4>Login / Register</h4>
+      <div class="input-field">
+        <i class="small material-icons prefix">person</i>
+        <input id="txtemail" type="text" class="validate">
+        <label for="nickname">Email</label>
+      </div>
+      <div class="input-field">
+        <i class="small material-icons prefix">lock</i>
+        <input id="txtpassword" type="password" class="validate">
+        <label for="password">Password</label>
+    </div>
+      <!-- Buttons for Mobile Version of Login Window -->
+      <div class="row hide-on-med-and-up">
+        <div class="col s12 m8 offset-m2">
+          <div class="row">
+            <a  id="btnregister_mobile" class="col s12 btn waves-effect waves-light left"><i class="material-icons left">person_add</i>Register</a>
+          </div>
+          <div class="row">
+            <a id="btnlogin_mobile" class="col s12 btn waves-effect waves-light right" ><i class="material-icons left">send</i>Login</a>
+          </div>
+        </div>
+      </div>
+      <!-- Buttons for Desktop Version of Login Window -->
+      <div class="row hide-on-small-only">
+        <div class="col m12">
+          <a id="btnregister" class="col s5 btn waves-effect waves-light left"><i class="material-icons left">person_add</i>Register</a>
+          <a id="btnlogin" class="col s5 offset-s2 btn waves-effect waves-light right" ><i class="material-icons right">send</i>Login</a>
+        </div>
+      </div>
+    </div>
+    <!-- Ende Login Window -->
+
+    <!-- Editor für die Marker-Popups -->
+    <div id="marker_editor" class="window_midscreen hidden">
+      <div class="close">
+        <a href="#">
+          <i class="material-icons close-a">close</i>
+        </a>
+      </div>
+
+      <div class="row s12">
+        <h4 id="editor_title" class="col s12 m6">Neuen POI erstellen</h4>
+        <!-- Kategorien -->
+        <div class="col s12 m4 input-field right">
+          <select id="category_select">
+            <option value="" disabled selected>Kategorien</option>
+            <option value="1">Kunstwerke</option>
+            <option value="2">Essen / Trinken</option>
+            <option value="3">Hörsäle</option>
+            <option value="4">Toiletten</option>
+            <option value="5">Parkplätze</option>
+            <option value="6">Büros</option>
+            <option value="7">Dozenten</option>
+            <option value="8">Information</option>
+            <option value="9">Geschäfte</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row s12">
+        <!-- Titel -->
+        <div class="col s12 m6 input-field">
+          <input id="titel_poi" maxlength="100" type="text" class="validate">
+          <label id="editor_input_title" for="titel_poi">Titel</label>
+        </div>
+
+        <!-- File Upload für Bilder -->
+        <form action="#" class="col s12 m5 right">
+          <div class="file-field input-field">
+            <div class="btn">
+              <input id="image_upload" accept="image/*" type="file" multiple>
+              <i class="material-icons left">image</i>Bild
+            </div>
+            <div class="file-path-wrapper">
+              <input class="file-path validate" type="text">
+            </div>
+          </div>
+        </form>
+      </div>
+      <!-- Textfeld für Beschreibung -->
+      <div class="row s12">
+        <div id="textarea_desc" class="input-field col s12 validate">
+          <input id="input_desc" maxlength="100" type="text">
+          <label id="editor_input_desc" for="input_desc">Beschreibung</label>
+      </div>
+      </div>
+      <div class="row s12">
+          <a id="create_button" class="col s12 m5 btn right" ><i class="material-icons right">send</i>erstellen</a>
+      </div>
+    </div>
+    <!-- Ende Editor -->
+
+    <div id="slider" class="slider">
+      <ul class="slides">
+        <li>
+          <img class="blur" src="./media/ur.png" alt="Uni Regensburg">
+          <div class="caption right-align">
+            <h3 class="black-text" >Willkommen bei InteractiveCM</h3>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/burgermenue.png" alt="Burgermenue">
+          <div class="caption right-align">
+            <h3 class="black-text">Öffne das Menü</h3>
+            <h5 class="black-text text-lighten-3">Klicke links unten auf das Menü-Symbol.</h5>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/loginbutton.png" alt="Login">
+          <div class="caption right-align">
+            <h3 class="black-text">Logge dich ein oder registriere dich</h3>
+            <h5 class="black-text text-lighten-3">Klicke auf "Login/Register".</h5>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/login.png" alt="Login">
+          <div class="caption right-align">
+            <h5 class="black-text text-lighten-3">Gib deine Email und ein Passwort an.</h5>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/Editor_blank.png" alt="Editor">
+          <div class="caption right-align">
+            <h3 class="black-text">Setze einen Marker</h3>
+            <h5 class="black-text text-lighten-3">Per Klick auf die Karte werden Marker erstellt. <br> Deine erstellten Marker sind schwarz.</h5>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/filter.png" alt="Filter">
+          <div class="caption right-align">
+            <h3 class="black-text">Filtere nach Markern</h3>
+            <h5 class="black-text text-lighten-3">Im Seitenmenü kannst du durch setzen von <br> Haken nach Kategorien filtern. <br> Diese werden rot angezeigt</h5>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/search.png" alt="Search">
+          <div class="caption right-align">
+            <h3 class="black-text">Suche nach Markern</h3>
+            <h5 class="black-text text-lighten-3">Im Seitenmenü kannst du gezielt nach Markern suchen. <br> Diese werden grün angezeigt</h5>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/switch_views.png" alt="SwitchViews">
+          <div class="caption right-align">
+            <h3 class="black-text">Umschalten der Ansicht</h3>
+            <h5 class="black-text text-lighten-3">Die Kartenansicht kann zwischen Satelliten- und <br> 2D-Ansicht umgeschalten werden</h5>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/popup.png" alt="Popup">
+          <div class="caption right-align">
+            <h3 class="black-text">Kommentieren, bearbeiten und <br> löschen von Markern</h3>
+            <h5 class="black-text text-lighten-3">Durch Anklicken des Markers, erscheint ein Popup, <br> mit allen zu dem Marker gehörigen Informationen. <br> Hier kann der Marker kommentiert, bearbeitet und <br> gelöscht werden (nur wenn es dein eigener ist!)</h5>
+          </div>
+        </li>
+        <li>
+          <img class="blur" src="./media/favorites.png" alt="Favoriten">
+          <div class="caption right-align">
+            <h3 class="black-text">Favorisieren von Markern</h3>
+            <h5 class="black-text text-lighten-3">Marker können über den kleinen Stern im Popup favorisiert werden. Favorisierte Marker kannst du im Menü unter "Favorites" abrufen (nur wenn du eingeloggt bist).</h5>
+          </div>
+        </li>
+      </ul>
+      <a id="end_button_tutorial" class="btn waves-effect waves-light right"><i class="material-icons left">send</i>Los geht's!</a>
+    </div>
+
+    <!-- Template POI -->
+    <template id="template_poi">
+      <div class="template-poi">
+        <div class="row">
+          <span class="col s12 category-poi">$KATEGORIE</span>
+          <h5 class="col s12 headline-poi"><b>$TITEL</b></h5>
+        </div>
+
+        <div class="row s12">
+          <img id="popup-image" class="col s12 m4 img-poi" src="media/ur.png" alt="POI Picture">
+          <div class="col s12 m8 description-poi">$BESCHREIBUNG</div>
+        </div>
+        <div class="row s12">
+          <h6 class="col s12">Kommentare</h6>
+          <div class="hline"></div>
+        </div>
+        <div class="comment-scroll row s12">
+          $COMMENTS
+        </div>
+        <div id="comment_input" class="input-field row s12">
+          <div class="col s11">
+            <i class="small material-icons prefix">chat</i>
+            <input id="input_comment" maxlength="200" type="text" class="validate" placeholder="Type your comment.">
+          </div>
+          <button id="submit_comment" class="btn waves-effect waves-light col s1" type="submit" name="action">
+            <i class="material-icons right">send</i>
+          </button>
+        </div>
+
+
+        <div id="buttons_row" class="row s12">
+          <button id="favorite_button" class=" col s1 btn small-btn waves-effect waves-light left blue" name="action"><i class="material-icons left">star</i></button>
+          <button id="delete_button" class="hidden col s1 push-s8 btn small-btn del-btn waves-effect waves-light left red" name="action"><i class="material-icons right">delete_forever</i></button>
+          <button id="edit_button" class="hidden col s1 push-s8 btn small-btn del-btn waves-effect waves-light left orange" name="action"><i class="material-icons right">edit</i></button>
+      </div>
+      </div>
+    </template>
+    <!-- Ende Template POI -->
+
+    <script type="text/javascript" src="resources/js/EditorController.js"></script>
+    <script type="text/javascript" src="resources/js/LoginController.js"></script>
+    <script type="text/javascript" src="resources/js/SidenavController.js"></script>
+    <script type="text/javascript" src="resources/js/MapController.js"></script>
+    <script type="text/javascript" src="resources/js/MapView.js"></script>
+    <script type="text/javascript" src="resources/js/Storage.js"></script>
+    <script type="text/javascript" src="resources/js/InteractiveCM.js"></script>
+    <script type="text/javascript" src="resources/js/leaflet-providers.js"></script>
+
+  </body>
+</html>
